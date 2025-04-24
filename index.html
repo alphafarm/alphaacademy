@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpha Academy</title>
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --alpha-purple: #6A1B9A;
+            --alpha-dark: #1A1A1A;
+            --alpha-light: #F5F5F5;
+        }
+
+        body {
+            background-color: var(--alpha-dark);
+            color: var(--alpha-light);
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .module-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border-left: 4px solid var(--alpha-purple);
+            transition: transform 0.3s ease;
+        }
+
+        .module-card:hover {
+            transform: translateX(10px);
+        }
+
+        .lesson-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .locked {
+            opacity: 0.6;
+            position: relative;
+            pointer-events: none;
+        }
+
+        .locked::after {
+            content: "\f023";
+            font-family: "Font Awesome 5 Free";
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--alpha-light);
+        }
+
+        .plyr--video {
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .plyr__controls button,
+        .plyr__progress__buffer {
+            color: var(--alpha-purple) !important;
+        }
+
+        .access-badge {
+            background: var(--alpha-purple);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-left: 1rem;
+        }
+
+        h1 {
+            color: var(--alpha-purple);
+            text-align: center;
+            margin-bottom: 3rem;
+            font-size: 2.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-graduation-cap"></i> Alpha Academy</h1>
+        <div id="modulesContainer"></div>
+    </div>
+
+    <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
+    <script>
+        // Configuração inicial
+        const accessLevels = [
+            { accessLevel: "1", accessLevelName: "default" },
+            { accessLevel: "2", accessLevelName: "internalTraining" }
+        ];
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const userAccessLevel = urlParams.get('accessLevel') || '1';
+
+        // Dados de exemplo
+        const modules = [
+            { moduleId: 1, moduleName: "Módulo Básico", isActive: true, accessLevel: 1, isLocked: false }
+        ];
+
+        const lessons = [
+            { title: "Introdução", description: "Aula introdutória", lessonUrl: "https://example.com/aula1.mp4", moduleId: 1, isActive: true, isLocked: false }
+        ];
+
+        // Função para renderizar conteúdo
+        function renderContent() {
+            const container = document.getElementById('modulesContainer');
+            container.innerHTML = '';
+
+            modules.filter(module => 
+                module.accessLevel == userAccessLevel && module.isActive
+            ).forEach(module => {
+                const moduleHtml = `
+                    <div class="module-card ${module.isLocked ? 'locked' : ''}">
+                        <h2>
+                            ${module.moduleName}
+                            ${module.isLocked ? '<i class="fas fa-lock"></i>' : ''}
+                        </h2>
+                        <div class="lessons-container" data-module="${module.moduleId}"></div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', moduleHtml);
+
+                const lessonsContainer = document.querySelector(`[data-module="${module.moduleId}"]`);
+                lessons.filter(lesson => 
+                    lesson.moduleId === module.moduleId && 
+                    lesson.isActive &&
+                    !lesson.isLocked
+                ).forEach(lesson => {
+                    const lessonHtml = `
+                        <div class="lesson-card ${lesson.isLocked ? 'locked' : ''}">
+                            <i class="fas fa-play-circle fa-2x" style="color: var(--alpha-purple);"></i>
+                            <div>
+                                <h3>${lesson.title}</h3>
+                                <p>${lesson.description}</p>
+                                ${lesson.lessonUrl && lesson.lessonUrl !== '#' ? `
+                                    <div class="plyr__video-embed" id="player-${lesson.title}">
+                                        <iframe src="${lesson.lessonUrl}"></iframe>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                    lessonsContainer.insertAdjacentHTML('beforeend', lessonHtml);
+                });
+            });
+
+            // Inicializar players Plyr
+            const players = Array.from(document.querySelectorAll('.plyr__video-embed')).map(player => {
+                return new Plyr(player, {
+                    controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
+                    ratio: '16:9'
+                });
+            });
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', renderContent);
+    </script>
+</body>
+</html>
