@@ -1,176 +1,425 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alpha Academy</title>
-    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <title>Alpha Academy - AlphaFarm</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
     <style>
-        :root {
-            --alpha-purple: #6A1B9A;
-            --alpha-dark: #1A1A1A;
-            --alpha-light: #F5F5F5;
-        }
-
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
         body {
-            background-color: var(--alpha-dark);
-            color: var(--alpha-light);
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Poppins', sans-serif;
+            background-color: #0f0f0f;
+            color: #ffffff;
         }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
+        
+        .gradient-text {
+            background: linear-gradient(90deg, #8a2be2, #9932cc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
         }
-
-        .module-card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            margin-bottom: 2rem;
-            padding: 1.5rem;
-            border-left: 4px solid var(--alpha-purple);
-            transition: transform 0.3s ease;
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #8a2be2 0%, #4b0082 100%);
         }
-
-        .module-card:hover {
-            transform: translateX(10px);
-        }
-
-        .lesson-card {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 8px;
-            padding: 1rem;
-            margin: 1rem 0;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .locked {
-            opacity: 0.6;
-            position: relative;
-            pointer-events: none;
-        }
-
-        .locked::after {
-            content: "\f023";
-            font-family: "Font Awesome 5 Free";
-            position: absolute;
-            right: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--alpha-light);
-        }
-
+        
         .plyr--video {
             border-radius: 8px;
             overflow: hidden;
-            margin: 1rem 0;
         }
-
-        .plyr__controls button,
-        .plyr__progress__buffer {
-            color: var(--alpha-purple) !important;
+        
+        .plyr__control--overlaid {
+            background: rgba(138, 43, 226, 0.8) !important;
         }
-
-        .access-badge {
-            background: var(--alpha-purple);
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            margin-left: 1rem;
+        
+        .plyr--full-ui input[type="range"] {
+            color: #8a2be2 !important;
         }
-
-        h1 {
-            color: var(--alpha-purple);
-            text-align: center;
-            margin-bottom: 3rem;
-            font-size: 2.5rem;
+        
+        .locked-item {
+            position: relative;
+            filter: grayscale(80%);
+            opacity: 0.7;
+        }
+        
+        .locked-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            z-index: 10;
+        }
+        
+        .module-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(138, 43, 226, 0.3);
+        }
+        
+        .lesson-item:hover {
+            background-color: rgba(138, 43, 226, 0.1);
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1><i class="fas fa-graduation-cap"></i> Alpha Academy</h1>
-        <div id="modulesContainer"></div>
-    </div>
-
-    <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
-    <script>
-        // Configuração inicial
-        const accessLevels = [
-            { accessLevel: "1", accessLevelName: "default" },
-            { accessLevel: "2", accessLevelName: "internalTraining" }
-        ];
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const userAccessLevel = urlParams.get('accessLevel') || '1';
-
-        // Dados de exemplo
-        const modules = [
-            { moduleId: 1, moduleName: "Módulo Básico", isActive: true, accessLevel: 1, isLocked: false }
-        ];
-
-        const lessons = [
-            { title: "Introdução", description: "Aula introdutória", lessonUrl: "https://example.com/aula1.mp4", moduleId: 1, isActive: true, isLocked: false }
-        ];
-
-        // Função para renderizar conteúdo
-        function renderContent() {
-            const container = document.getElementById('modulesContainer');
-            container.innerHTML = '';
-
-            modules.filter(module => 
-                module.accessLevel == userAccessLevel && module.isActive
-            ).forEach(module => {
-                const moduleHtml = `
-                    <div class="module-card ${module.isLocked ? 'locked' : ''}">
-                        <h2>
-                            ${module.moduleName}
-                            ${module.isLocked ? '<i class="fas fa-lock"></i>' : ''}
-                        </h2>
-                        <div class="lessons-container" data-module="${module.moduleId}"></div>
+<body class="min-h-screen">
+    <!-- Header -->
+    <header class="bg-black border-b border-purple-900">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <div class="w-10 h-10 gradient-bg rounded-full flex items-center justify-center">
+                        <i class="fas fa-gem text-white"></i>
                     </div>
-                `;
-                container.insertAdjacentHTML('beforeend', moduleHtml);
+                    <h1 class="text-2xl font-bold">
+                        <span class="gradient-text">Alpha</span><span class="text-white">Farm</span>
+                    </h1>
+                </div>
+                <div>
+                    <span class="text-purple-400 text-sm hidden md:inline">Alpha Academy</span>
+                </div>
+            </div>
+        </div>
+    </header>
 
-                const lessonsContainer = document.querySelector(`[data-module="${module.moduleId}"]`);
-                lessons.filter(lesson => 
-                    lesson.moduleId === module.moduleId && 
-                    lesson.isActive &&
-                    !lesson.isLocked
-                ).forEach(lesson => {
-                    const lessonHtml = `
-                        <div class="lesson-card ${lesson.isLocked ? 'locked' : ''}">
-                            <i class="fas fa-play-circle fa-2x" style="color: var(--alpha-purple);"></i>
-                            <div>
-                                <h3>${lesson.title}</h3>
-                                <p>${lesson.description}</p>
-                                ${lesson.lessonUrl && lesson.lessonUrl !== '#' ? `
-                                    <div class="plyr__video-embed" id="player-${lesson.title}">
-                                        <iframe src="${lesson.lessonUrl}"></iframe>
-                                    </div>
-                                ` : ''}
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Hero Section -->
+        <section class="mb-12">
+            <div class="text-center">
+                <h2 class="text-4xl md:text-5xl font-bold mb-4">
+                    <span class="gradient-text">Alpha Academy</span>
+                </h2>
+                <p class="text-gray-300 max-w-2xl mx-auto">
+                    Domine o Facebook Ads com nossos cursos exclusivos e estratégias comprovadas de contingência.
+                </p>
+            </div>
+        </section>
+
+        <!-- Modules and Lessons -->
+        <section>
+            <div class="flex flex-col lg:flex-row gap-8">
+                <!-- Modules List -->
+                <div class="lg:w-1/3">
+                    <div class="bg-gray-900 rounded-lg p-6 border border-purple-900/30">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-semibold text-white">
+                                <i class="fas fa-layer-group text-purple-400 mr-2"></i>
+                                Módulos
+                            </h3>
+                            <span id="access-level-badge" class="px-3 py-1 rounded-full text-xs font-medium bg-purple-900/50 text-purple-300"></span>
+                        </div>
+                        
+                        <div id="modules-list" class="space-y-4">
+                            <!-- Modules will be populated here by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Lessons Content -->
+                <div class="lg:w-2/3">
+                    <div id="lessons-container" class="bg-gray-900 rounded-lg p-6 border border-purple-900/30 min-h-[500px]">
+                        <div id="no-module-selected" class="flex flex-col items-center justify-center h-full text-center py-12">
+                            <i class="fas fa-book-open text-5xl text-purple-400 mb-4"></i>
+                            <h3 class="text-xl font-semibold text-white mb-2">Selecione um módulo</h3>
+                            <p class="text-gray-400 max-w-md">Escolha um módulo à esquerda para visualizar as aulas disponíveis.</p>
+                        </div>
+                        
+                        <div id="lessons-list" class="hidden">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 id="selected-module-name" class="text-xl font-semibold text-white">
+                                    <i class="fas fa-video text-purple-400 mr-2"></i>
+                                    Aulas
+                                </h3>
+                                <div id="module-status" class="px-3 py-1 rounded-full text-xs font-medium"></div>
+                            </div>
+                            
+                            <div id="lessons-content" class="space-y-4">
+                                <!-- Lessons will be populated here by JavaScript -->
                             </div>
                         </div>
-                    `;
-                    lessonsContainer.insertAdjacentHTML('beforeend', lessonHtml);
-                });
-            });
+                        
+                        <div id="video-player-container" class="hidden mt-8">
+                            <div class="mb-6">
+                                <h4 id="lesson-title" class="text-lg font-semibold text-white mb-2"></h4>
+                                <p id="lesson-description" class="text-gray-300"></p>
+                            </div>
+                            <div class="plyr__video-embed" id="player">
+                                <!-- Video player will be initialized here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
 
-            // Inicializar players Plyr
-            const players = Array.from(document.querySelectorAll('.plyr__video-embed')).map(player => {
-                return new Plyr(player, {
-                    controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
-                    ratio: '16:9'
-                });
+    <!-- Footer -->
+    <footer class="bg-black border-t border-purple-900 mt-12">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 gradient-bg rounded-full flex items-center justify-center">
+                            <i class="fas fa-gem text-white text-sm"></i>
+                        </div>
+                        <span class="text-white font-medium">AlphaFarm</span>
+                    </div>
+                </div>
+                <div class="text-gray-400 text-sm">
+                    &copy; <span id="current-year"></span> AlphaFarm. Todos os direitos reservados.
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+    <script>
+        // Data - This would typically come from an API
+        const accessLevels = [
+            {"accessLevel": "1", "accessLevelName": "default"},
+            {"accessLevel": "2", "accessLevelName": "internalTraining"}
+        ];
+        
+        const modules = [
+            {"moduleId": 1, "moduleName": "Introdução ao Facebook Ads", "isActive": true, "accessLevel": 1, "isLocked": false},
+            {"moduleId": 2, "moduleName": "Estratégias de Contingência", "isActive": true, "accessLevel": 1, "isLocked": false},
+            {"moduleId": 3, "moduleName": "Otimização de Campanhas", "isActive": true, "accessLevel": 1, "isLocked": false},
+            {"moduleId": 4, "moduleName": "Métodos Avançados", "isActive": true, "accessLevel": 2, "isLocked": false},
+            {"moduleId": 5, "moduleName": "Conteúdo Exclusivo", "isActive": true, "accessLevel": 2, "isLocked": true}
+        ];
+        
+        const lessons = [
+            {"title": "Bem-vindo ao Alpha Academy", "description": "Introdução ao curso e o que você vai aprender.", "lessonUrl": "https://www.youtube.com/embed/bTqVqk7FSmY", "moduleId": 1, "isActive": true, "isLocked": false},
+            {"title": "Configuração Inicial", "description": "Como configurar sua conta do Facebook Ads para começar.", "lessonUrl": "https://www.youtube.com/embed/dQw4w9WgXcQ", "moduleId": 1, "isActive": true, "isLocked": false},
+            {"title": "Entendendo o Público-Alvo", "description": "Aprenda a definir e segmentar seu público com precisão.", "lessonUrl": "#", "moduleId": 1, "isActive": true, "isLocked": false},
+            {"title": "O que é Contingência?", "description": "Conceitos básicos de contingência em anúncios.", "lessonUrl": "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4", "moduleId": 2, "isActive": true, "isLocked": false},
+            {"title": "Criando Planos B", "description": "Desenvolva estratégias alternativas para seus anúncios.", "lessonUrl": "#", "moduleId": 2, "isActive": true, "isLocked": true},
+            {"title": "Métricas Essenciais", "description": "Quais métricas acompanhar para otimizar suas campanhas.", "lessonUrl": "#", "moduleId": 3, "isActive": true, "isLocked": false},
+            {"title": "Conteúdo Exclusivo - Parte 1", "description": "Estratégias avançadas para membros internos.", "lessonUrl": "#", "moduleId": 4, "isActive": true, "isLocked": false},
+            {"title": "Conteúdo Exclusivo - Parte 2", "description": "Mais estratégias avançadas para membros internos.", "lessonUrl": "#", "moduleId": 4, "isActive": true, "isLocked": false},
+            {"title": "Módulo Bloqueado", "description": "Este módulo requer acesso especial.", "lessonUrl": "#", "moduleId": 5, "isActive": true, "isLocked": true}
+        ];
+        
+        // Get access level from URL parameter or default to 1
+        const urlParams = new URLSearchParams(window.location.search);
+        let userAccessLevel = urlParams.get('accessLevel') || '1';
+        
+        // Validate access level
+        if (!accessLevels.some(level => level.accessLevel === userAccessLevel)) {
+            userAccessLevel = '1';
+        }
+        
+        // Set current year in footer
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+        
+        // Display access level badge
+        const currentAccessLevel = accessLevels.find(level => level.accessLevel === userAccessLevel);
+        const accessLevelBadge = document.getElementById('access-level-badge');
+        accessLevelBadge.textContent = currentAccessLevel.accessLevelName;
+        
+        // Filter modules by access level and active status
+        const availableModules = modules.filter(module => 
+            module.accessLevel.toString() === userAccessLevel && module.isActive
+        );
+        
+        // Render modules
+        const modulesList = document.getElementById('modules-list');
+        
+        if (availableModules.length === 0) {
+            modulesList.innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-lock text-3xl text-purple-400 mb-3"></i>
+                    <p class="text-gray-400">Nenhum módulo disponível para seu nível de acesso.</p>
+                </div>
+            `;
+        } else {
+            availableModules.forEach(module => {
+                const moduleElement = document.createElement('div');
+                moduleElement.className = `module-card bg-gray-800 rounded-lg p-4 cursor-pointer transition-all duration-300 ${module.isLocked ? 'locked-item' : ''}`;
+                moduleElement.dataset.moduleId = module.moduleId;
+                
+                moduleElement.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h4 class="font-medium ${module.isLocked ? 'text-gray-400' : 'text-white'}">
+                                ${module.moduleName}
+                            </h4>
+                            <div class="flex items-center mt-1">
+                                <span class="text-xs ${module.isLocked ? 'text-gray-500' : 'text-purple-300'}">
+                                    ${lessons.filter(lesson => lesson.moduleId === module.moduleId && lesson.isActive).length} aulas
+                                </span>
+                            </div>
+                        </div>
+                        <i class="fas ${module.isLocked ? 'fa-lock text-gray-500' : 'fa-chevron-right text-purple-400'}"></i>
+                    </div>
+                    ${module.isLocked ? '<div class="locked-overlay"><i class="fas fa-lock text-white text-xl"></i></div>' : ''}
+                `;
+                
+                if (!module.isLocked) {
+                    moduleElement.addEventListener('click', () => loadModuleLessons(module.moduleId));
+                }
+                
+                modulesList.appendChild(moduleElement);
             });
         }
-
-        // Inicializar
-        document.addEventListener('DOMContentLoaded', renderContent);
+        
+        // Function to load module lessons
+        function loadModuleLessons(moduleId) {
+            const selectedModule = modules.find(m => m.moduleId === moduleId);
+            const moduleLessons = lessons.filter(lesson => 
+                lesson.moduleId === moduleId && lesson.isActive
+            );
+            
+            // Update UI
+            document.getElementById('no-module-selected').classList.add('hidden');
+            document.getElementById('lessons-list').classList.remove('hidden');
+            document.getElementById('video-player-container').classList.add('hidden');
+            
+            // Set module name
+            document.getElementById('selected-module-name').innerHTML = `
+                <i class="fas fa-video text-purple-400 mr-2"></i>
+                ${selectedModule.moduleName}
+            `;
+            
+            // Set module status
+            const moduleStatus = document.getElementById('module-status');
+            if (selectedModule.isLocked) {
+                moduleStatus.className = 'px-3 py-1 rounded-full text-xs font-medium bg-gray-700 text-gray-300';
+                moduleStatus.innerHTML = '<i class="fas fa-lock mr-1"></i> Bloqueado';
+            } else {
+                moduleStatus.className = 'px-3 py-1 rounded-full text-xs font-medium bg-green-900/50 text-green-300';
+                moduleStatus.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Disponível';
+            }
+            
+            // Render lessons
+            const lessonsContent = document.getElementById('lessons-content');
+            lessonsContent.innerHTML = '';
+            
+            if (moduleLessons.length === 0) {
+                lessonsContent.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-video-slash text-3xl text-purple-400 mb-3"></i>
+                        <p class="text-gray-400">Nenhuma aula disponível neste módulo.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            moduleLessons.forEach((lesson, index) => {
+                const lessonElement = document.createElement('div');
+                lessonElement.className = `lesson-item bg-gray-800 rounded-lg p-4 transition-all duration-200 ${lesson.isLocked ? 'locked-item' : 'cursor-pointer hover:border-purple-500'}`;
+                lessonElement.dataset.lessonId = index;
+                
+                lessonElement.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h4 class="font-medium ${lesson.isLocked ? 'text-gray-400' : 'text-white'}">
+                                ${index + 1}. ${lesson.title}
+                            </h4>
+                            <p class="text-sm mt-1 ${lesson.isLocked ? 'text-gray-500' : 'text-gray-300'}">
+                                ${lesson.description}
+                            </p>
+                        </div>
+                        <div class="flex items-center">
+                            ${lesson.isLocked ? 
+                                '<span class="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded"><i class="fas fa-lock mr-1"></i> Bloqueado</span>' : 
+                                '<i class="fas fa-play-circle text-purple-400 text-xl"></i>'
+                            }
+                        </div>
+                    </div>
+                    ${lesson.isLocked ? '<div class="locked-overlay"><i class="fas fa-lock text-white text-xl"></i></div>' : ''}
+                `;
+                
+                if (!lesson.isLocked) {
+                    lessonElement.addEventListener('click', () => loadLesson(lesson));
+                }
+                
+                lessonsContent.appendChild(lessonElement);
+            });
+        }
+        
+        // Function to load a specific lesson
+        function loadLesson(lesson) {
+            if (!lesson.lessonUrl || lesson.lessonUrl === '#') {
+                // If no video URL, just show the lesson info
+                document.getElementById('video-player-container').classList.add('hidden');
+                return;
+            }
+            
+            // Show lesson details
+            document.getElementById('lesson-title').textContent = lesson.title;
+            document.getElementById('lesson-description').textContent = lesson.description;
+            
+            // Initialize or reinitialize the video player
+            const playerContainer = document.getElementById('video-player-container');
+            const playerElement = document.getElementById('player');
+            
+            playerContainer.classList.remove('hidden');
+            playerElement.innerHTML = ''; // Clear previous player
+            
+            // Create new video element based on URL type
+            if (lesson.lessonUrl.includes('youtube.com') || lesson.lessonUrl.includes('youtu.be')) {
+                // YouTube video
+                const iframe = document.createElement('div');
+                iframe.dataset.plyrEmbed = 'youtube';
+                iframe.dataset.plyrProvider = 'youtube';
+                iframe.dataset.videoId = extractYouTubeId(lesson.lessonUrl);
+                playerElement.appendChild(iframe);
+            } else {
+                // Direct video file
+                const video = document.createElement('video');
+                video.setAttribute('playsinline', '');
+                video.setAttribute('controls', '');
+                
+                const source = document.createElement('source');
+                source.src = lesson.lessonUrl;
+                
+                // Try to detect video type from URL
+                if (lesson.lessonUrl.endsWith('.mp4')) {
+                    source.type = 'video/mp4';
+                } else if (lesson.lessonUrl.endsWith('.webm')) {
+                    source.type = 'video/webm';
+                } else if (lesson.lessonUrl.endsWith('.ogg') || lesson.lessonUrl.endsWith('.ogv')) {
+                    source.type = 'video/ogg';
+                }
+                
+                video.appendChild(source);
+                playerElement.appendChild(video);
+            }
+            
+            // Initialize Plyr player
+            const player = new Plyr('#player', {
+                controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'captions', 'settings', 'pip', 'airplay', 'fullscreen'],
+                settings: ['captions', 'quality', 'speed'],
+                ratio: '16:9',
+                hideControls: false,
+                keyboard: { focused: true, global: true }
+            });
+            
+            // Scroll to player
+            playerContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        // Helper function to extract YouTube ID from URL
+        function extractYouTubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+        
+        // Initialize first module if available
+        if (availableModules.length > 0 && !availableModules[0].isLocked) {
+            loadModuleLessons(availableModules[0].moduleId);
+        }
     </script>
 </body>
 </html>
